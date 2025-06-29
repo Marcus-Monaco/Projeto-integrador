@@ -9,90 +9,94 @@ class CoCombo:
         self.gui = gui
         self.bo = BoCombo(conexao)
     
-    def carregar_lista_livros(self):
-        """Carregar livros em thread separada"""
-        # Desabilitar botão durante carregamento
+    def load_book_list(self):
+        """Load books in separate thread"""
+        # Disable button during loading
         self.gui.btn_carregar_livros.config(state='disabled', text='Carregando...')
         
-        # Executar em thread separada
-        thread = threading.Thread(target=self._carregar_livros_thread)
+        # Execute in separate thread
+        thread = threading.Thread(target=self._load_books_thread)
         thread.daemon = True
         thread.start()
     
-    def _carregar_livros_thread(self):
-        """Thread para carregar livros"""
+    def _load_books_thread(self):
+        """Thread for loading books"""
         try:
-            cursor = self.bo.lista_livros()
+            cursor = self.bo.get_books()
             livros = cursor.fetchall()
             
-            # Montar lista para o combobox
-            titulos = [livro[0].strip() for livro in livros]
+            # Build list for combobox
+            titles = [livro[0].strip() for livro in livros]
             
-            # Usar after para atualizar GUI na thread principal
-            self.gui.root.after(0, self._atualizar_combo, titulos)
+            # Use after to update GUI in main thread
+            self.gui.root.after(0, self._update_combo, titles)
             
         except Exception as ex:
-            # Mostrar erro na thread principal
-            self.gui.root.after(0, self._mostrar_erro_carregamento, str(ex))
+            # Show error in main thread
+            self.gui.root.after(0, self._show_loading_error, str(ex))
     
-    def _atualizar_combo(self, titulos):
-        """Atualizar combo na thread principal"""
-        # Setar no combobox
-        self.gui.combo_livros['values'] = titulos
+    def _update_combo(self, titles):
+        """Update combo in main thread"""
+        # Set combobox values
+        self.gui.combo_livros['values'] = titles
         
-        # Reabilitar botão
-        self.gui.btn_carregar_livros.config(state='normal', text='Carregar')
+        # Re-enable button
+        self.gui.btn_carregar_livros.config(state='normal', text='Carregar Lista')
         
-        # Mostrar mensagem - AGORA vai aparecer imediatamente
-        messagebox.showinfo("Teste TDD", 
-                           f"Carregados {len(titulos)} registros!",
+        # Show message
+        messagebox.showinfo("Sistema de Biblioteca", 
+                           f"Carregados {len(titles)} livros!",
                            parent=self.gui.root)
     
-    def _mostrar_erro_carregamento(self, erro):
-        """Mostrar erro na thread principal"""
-        self.gui.btn_carregar_livros.config(state='normal', text='Carregar')
-        messagebox.showerror("Erro", f"Erro ao carregar livros: {erro}",
+    def _show_loading_error(self, error):
+        """Show error in main thread"""
+        self.gui.btn_carregar_livros.config(state='normal', text='Carregar Lista')
+        messagebox.showerror("Erro", f"Erro ao carregar livros: {error}",
                             parent=self.gui.root)
     
-    def obter_lista(self):
-        """Obter lista em thread separada"""
-        # Desabilitar botão
+    def show_all_books(self):
+        """Get list in separate thread"""
+        # Disable button
         self.gui.btn_carregar_dados.config(state='disabled', text='Carregando...')
         
-        # Executar em thread
-        thread = threading.Thread(target=self._obter_lista_thread)
+        # Execute in thread
+        thread = threading.Thread(target=self._get_list_thread)
         thread.daemon = True
         thread.start()
     
-    def _obter_lista_thread(self):
-        """Thread para obter dados"""
+    def _get_list_thread(self):
+        """Thread for getting data"""
         try:
-            cursor = self.bo.pesquisa_dados_livros()
+            cursor = self.bo.get_book_details()
             
-            # Mostrar consulta na thread principal
-            self.gui.root.after(0, self._mostrar_consulta, cursor)
+            # Show query in main thread
+            self.gui.root.after(0, self._show_query, cursor)
             
         except Exception as ex:
-            self.gui.root.after(0, self._mostrar_erro_consulta, str(ex))
+            self.gui.root.after(0, self._show_query_error, str(ex))
     
-    def _mostrar_consulta(self, cursor):
-        """Mostrar consulta na thread principal"""
+    def _show_query(self, cursor):
+        """Show query in main thread"""
         try:
-            # Reabilitar botão
-            self.gui.btn_carregar_dados.config(state='normal', text='Carregar')
+            # Re-enable button
+            self.gui.btn_carregar_dados.config(state='normal', text='Exibir Todos os Livros')
             
-            # Criar controlador da tela de consulta
-            title = "Consultar livros"
+            # Create query screen controller
+            title = "Consulta de Livros"
             controller_consulta = CoConsulta(self.gui.root, True, cursor, title)
             
-            # Mostrar consulta
+            # Show query
             controller_consulta.consultar()
             
         except Exception as ex:
-            self._mostrar_erro_consulta(str(ex))
+            self._show_query_error(str(ex))
     
-    def _mostrar_erro_consulta(self, erro):
-        """Mostrar erro de consulta"""
-        self.gui.btn_carregar_dados.config(state='normal', text='Carregar')
-        messagebox.showerror("Erro", f"Erro ao obter lista: {erro}",
+    def _show_query_error(self, error):
+        """Show query error"""
+        self.gui.btn_carregar_dados.config(state='normal', text='Exibir Todos os Livros')
+        messagebox.showerror("Erro", f"Erro ao obter lista de livros: {error}",
                             parent=self.gui.root)
+
+    # Alias methods for backward compatibility
+    carregar_lista_livros = load_book_list
+    obter_lista = show_all_books

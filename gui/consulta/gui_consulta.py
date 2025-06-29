@@ -13,16 +13,16 @@ class GuiConsulta:
         self.colunas = None
         self.selection_callback = None
         
-        # Criar janela
+        # Create window
         self.window = tk.Toplevel(parent) if parent else tk.Tk()
         self.window.title(title)
         self.window.geometry("1000x700")
         self.window.resizable(True, True)
         
-        # Centralizar janela
+        # Center window
         self.center_window()
         
-        # Configurar modalidade
+        # Configure modality
         if parent:
             self.window.transient(parent)
         if modal:
@@ -31,60 +31,109 @@ class GuiConsulta:
         self.setup_ui()
     
     def center_window(self):
-        """Centralizar janela"""
+        """Center window on screen"""
         self.window.update_idletasks()
         x = (self.window.winfo_screenwidth() // 2) - (1000 // 2)
         y = (self.window.winfo_screenheight() // 2) - (700 // 2)
         self.window.geometry(f"1000x700+{x}+{y}")
     
     def setup_ui(self):
-        # Frame principal
+        # Main frame
         main_frame = tk.Frame(self.window)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        # Label de instruções
-        label_info = tk.Label(main_frame, 
-                             text="Double-click em uma linha para selecionar",
+        # Configure frame for dynamic resizing
+        main_frame.grid_rowconfigure(1, weight=1)  # Table row
+        main_frame.grid_columnconfigure(0, weight=1)
+        
+        # Title and instruction
+        title_frame = tk.Frame(main_frame)
+        title_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+        
+        # Configure title frame
+        title_frame.grid_columnconfigure(0, weight=1)
+        
+        # Title label
+        title_label = tk.Label(title_frame, text=self.title, 
+                             font=("Arial", 16, "bold"))
+        title_label.grid(row=0, column=0, sticky="w")
+        
+        # Instruction label
+        label_info = tk.Label(title_frame, 
+                             text="Clique duplo em uma linha para ver detalhes",
                              font=("Arial", 11), fg="blue")
-        label_info.pack(pady=(0, 10))
+        label_info.grid(row=1, column=0, sticky="w", pady=(5, 0))
         
-        # Frame para a tabela
-        table_frame = tk.Frame(main_frame)
-        table_frame.pack(fill=tk.BOTH, expand=True)
+        # Table frame with border
+        table_frame = tk.LabelFrame(main_frame, text="Resultados da Consulta")
+        table_frame.grid(row=1, column=0, sticky="nsew")
         
-        # Treeview para simular JTable
-        self.tree = ttk.Treeview(table_frame, show="headings", height=20)
-        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        # Configure table frame for resizing
+        table_frame.grid_rowconfigure(0, weight=1)
+        table_frame.grid_columnconfigure(0, weight=1)
+        
+        # Create frame for treeview and vertical scrollbar
+        tree_frame = tk.Frame(table_frame)
+        tree_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        
+        # Configure tree frame
+        tree_frame.grid_rowconfigure(0, weight=1)
+        tree_frame.grid_columnconfigure(0, weight=1)
+        
+        # Configure style for treeview
+        style = ttk.Style()
+        style.theme_use("default")
+        
+        # Configure tag colors for alternating rows
+        style.configure("Treeview", 
+                       background="#f0f0f0",
+                       foreground="black",
+                       rowheight=25,
+                       fieldbackground="#f0f0f0",
+                       font=("Arial", 10))
+        
+        # Configure selected row style
+        style.map('Treeview', 
+                 background=[('selected', '#3a7ebf')],
+                 foreground=[('selected', 'white')])
+        
+        # Treeview for table display
+        self.tree = ttk.Treeview(tree_frame, show="headings", style="Treeview")
+        self.tree.grid(row=0, column=0, sticky="nsew")
         
         # Scrollbars
-        v_scrollbar = ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=self.tree.yview)
-        v_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        v_scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=self.tree.yview)
+        v_scrollbar.grid(row=0, column=1, sticky="ns")
         self.tree.configure(yscrollcommand=v_scrollbar.set)
         
-        h_scrollbar = ttk.Scrollbar(main_frame, orient=tk.HORIZONTAL, command=self.tree.xview)
-        h_scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
+        h_scrollbar = ttk.Scrollbar(table_frame, orient=tk.HORIZONTAL, command=self.tree.xview)
+        h_scrollbar.grid(row=1, column=0, sticky="ew")
         self.tree.configure(xscrollcommand=h_scrollbar.set)
         
-        # Frame para botões
-        button_frame = tk.Frame(main_frame)
-        button_frame.pack(fill=tk.X, pady=(10, 0))
+        # Status and button frame
+        status_frame = tk.Frame(main_frame)
+        status_frame.grid(row=2, column=0, sticky="ew", pady=(10, 0))
         
-        # Botão Fechar
-        btn_fechar = tk.Button(button_frame, text="Fechar", font=("Arial", 12, "bold"),
-                              command=self.fechar, width=12)
-        btn_fechar.pack(side=tk.RIGHT, padx=(10, 0))
+        # Configure status frame
+        status_frame.grid_columnconfigure(1, weight=1)
         
-        # Label com total de registros
-        self.label_total = tk.Label(button_frame, text="", font=("Arial", 10))
-        self.label_total.pack(side=tk.LEFT)
+        # Total records label
+        self.label_total = tk.Label(status_frame, text="", font=("Arial", 10))
+        self.label_total.grid(row=0, column=0, sticky="w")
         
-        # Bind para clique na tabela
+        # Close button
+        btn_fechar = tk.Button(status_frame, text="Fechar Janela", font=("Arial", 12, "bold"),
+                              command=self.fechar, width=15)
+        btn_fechar.grid(row=0, column=2, sticky="e")
+        
+        # Bind for table click
         self.tree.bind('<Double-1>', self.on_item_select)
+        self.tree.bind('<ButtonRelease-1>', self.highlight_row)
     
     def set_data(self, cursor):
-        """Configura os dados na tabela"""
+        """Configure data in the table"""
         try:
-            # Montar tabela usando GuiMontarTable
+            # Build table using GuiMontarTable
             montador = GuiMontarTable(cursor)
             colunas, dados = montador.cria_tabela()
             
@@ -95,17 +144,37 @@ class GuiConsulta:
             self.colunas = colunas
             self.dados = dados
             
-            # Configurar colunas
+            # Configure columns
             self.tree["columns"] = colunas
             
-            # Configurar cabeçalhos
-            for col in colunas:
-                self.tree.heading(col, text=col.upper())
-                self.tree.column(col, width=200, anchor=tk.W, minwidth=100)
+            # Configure headers with better column names
+            column_display_names = {
+                "titulo": "TÍTULO",
+                "nome": "AUTOR",
+                "numero": "EDIÇÃO",
+                "ano": "ANO"
+            }
             
-            # Inserir dados
+            # Set column headers and widths
+            for col in colunas:
+                display_name = column_display_names.get(col, col.upper())
+                self.tree.heading(col, text=display_name, anchor=tk.CENTER)
+                
+                # Set appropriate column width based on content
+                if col in ["titulo", "nome"]:
+                    width = 350  # Wider for text columns
+                else:
+                    width = 100  # Narrower for number columns
+                    
+                self.tree.column(col, width=width, minwidth=100)
+            
+            # Define tags for alternating row colors
+            self.tree.tag_configure('oddrow', background='#E8E8E8')
+            self.tree.tag_configure('evenrow', background='white')
+            
+            # Insert data
             for i, row in enumerate(dados):
-                # Limpar dados (trim)
+                # Clean data (trim)
                 clean_row = []
                 for item in row:
                     if isinstance(item, str):
@@ -113,9 +182,11 @@ class GuiConsulta:
                     else:
                         clean_row.append(str(item) if item is not None else "")
                 
-                self.tree.insert("", tk.END, iid=i, values=clean_row)
+                # Apply alternating row colors
+                tag = 'evenrow' if i % 2 == 0 else 'oddrow'
+                self.tree.insert("", tk.END, iid=i, values=clean_row, tags=(tag,))
             
-            # Atualizar label de total
+            # Update total label
             self.label_total.config(text=f"Total de registros: {len(dados)}")
                 
         except Exception as e:
@@ -123,20 +194,20 @@ class GuiConsulta:
                                parent=self.window)
     
     def on_item_select(self, event):
-        """Handle item selection - CORRIGIDO"""
+        """Handle item selection"""
         try:
             selection = self.tree.selection()
             if not selection:
                 return
             
-            # Pegar item selecionado
+            # Get selected item
             item_id = selection[0]
             linha = int(item_id)
             
             if linha < 0 or linha >= len(self.dados):
                 return
             
-            # Criar objeto consulta com os dados da linha selecionada
+            # Create query object with selected row data
             dados_selecionados = []
             for item in self.dados[linha]:
                 if isinstance(item, str):
@@ -144,7 +215,7 @@ class GuiConsulta:
                 else:
                     dados_selecionados.append(str(item) if item is not None else "")
             
-            # Chamar callback se definido
+            # Call callback if defined
             if self.selection_callback:
                 self.selection_callback(dados_selecionados)
             
@@ -155,22 +226,37 @@ class GuiConsulta:
             messagebox.showerror("Erro", f"Erro na seleção: {e}",
                                parent=self.window)
     
+    def highlight_row(self, event):
+        """Highlight the selected row"""
+        try:
+            selection = self.tree.selection()
+            if selection:
+                # Get selected item
+                item_id = selection[0]
+                
+                # Ensure the row is visible
+                self.tree.see(item_id)
+                
+                # Highlight the row (already handled by ttk.Treeview selection)
+        except Exception:
+            pass
+    
     def set_selection_callback(self, callback):
-        """Definir callback para seleção"""
+        """Set callback for selection"""
         self.selection_callback = callback
     
     def fechar(self):
-        """Fechar janela"""
+        """Close window"""
         self.retorno = False
         self.window.destroy()
     
     def show(self):
-        """Mostrar janela"""
+        """Show window"""
         self.window.protocol("WM_DELETE_WINDOW", self.fechar)
         self.window.mainloop()
     
     def set_selecao_tabela(self, selecao):
-        """Permitir ou inibir seleção na tabela"""
+        """Enable or disable table selection"""
         if selecao:
             self.tree.bind('<Double-1>', self.on_item_select)
         else:

@@ -1,38 +1,47 @@
 import tkinter as tk
 from tkinter import messagebox
+import argparse
 from business.bo_conexao import BoConexao
 from gui.gui_combo import GuiCombo
 
-class Principal:
-    def __init__(self):
-        self.conexao = BoConexao()
+class Main:
+    def __init__(self, db_type="postgresql"):
+        self.connection = BoConexao(db_type)
         self.gui = None
     
-    def conectar(self):
+    def connect(self):
         try:
-            self.conexao.conectar()
-            print("conectou")
+            self.connection.conectar()
+            print(f"Conectado ao banco de dados {self.connection.db_type}")
         except Exception as ex:
-            messagebox.showerror("Erro", f"Erro ao conectar no banco de dados! {ex}")
+            messagebox.showerror("Erro", f"Erro ao conectar ao banco de dados! {ex}")
     
-    def desconectar(self):
+    def disconnect(self):
         try:
-            self.conexao.desconectar()
-            print("desconectou")
+            self.connection.desconectar()
+            print(f"Desconectado do banco de dados {self.connection.db_type}")
         except Exception as ex:
             messagebox.showerror("Erro", f"Erro ao desconectar do banco de dados! {ex}")
     
-    def executar(self):
-        # Conectar
-        self.conectar()
+    def run(self):
+        # Connect
+        self.connect()
         
-        # Criar e mostrar tela
-        self.gui = GuiCombo(self.conexao)
+        # Create and show screen
+        self.gui = GuiCombo(self.connection)
         self.gui.show()
         
-        # Desconectar
-        self.desconectar()
+        # Disconnect
+        self.disconnect()
 
 if __name__ == "__main__":
-    app = Principal()
-    app.executar()
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description='Sistema de Gerenciamento de Biblioteca')
+    parser.add_argument('--db', choices=['postgresql', 'mysql'], 
+                        default='postgresql',
+                        help='Tipo de banco de dados (postgresql ou mysql)')
+    
+    args = parser.parse_args()
+    
+    app = Main(db_type=args.db)
+    app.run()

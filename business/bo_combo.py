@@ -1,12 +1,16 @@
 from dao.dao_combo import DaoCombo
 
 class BoCombo:
-    def __init__(self, conexao):
-        self.conexao = conexao
-        self.dao = DaoCombo(conexao)
+    def __init__(self, connection):
+        self.conexao = connection
+        self.dao = DaoCombo(connection)
     
-    def lista_livros(self):
+    def get_books(self):
         return self.dao.lista_livros()
     
-    def pesquisa_dados_livros(self):
+    def get_book_details(self):
         return self.dao.pesquisa_dados_livros()
+    
+    # Aliases for backward compatibility
+    lista_livros = get_books
+    pesquisa_dados_livros = get_book_details

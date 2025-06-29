@@ -7,23 +7,26 @@ class GuiMontarTable:
         self.cursor = cursor
     
     def cria_tabela(self):
-        return self.monta_tabela()
+        return self.build_table()
     
-    def monta_tabela(self):
+    def build_table(self):
         try:
-            # Buscar dados do cursor
-            dados = self.cursor.fetchall()
+            # Get data from cursor
+            data = self.cursor.fetchall()
             
-            if not dados:
-                print("Tabela Vazia.")
+            if not data:
+                print("Empty table.")
                 return None, None
             
-            # Buscar metadados das colunas
-            colunas = [desc[0] for desc in self.cursor.description]
+            # Get column metadata
+            columns = [desc[0] for desc in self.cursor.description]
             
-            # Retornar colunas e dados
-            return colunas, dados
+            # Return columns and data
+            return columns, data
             
         except Exception as e:
-            messagebox.showerror("Erro", f"Erro ao montar tabela: {e}")
+            messagebox.showerror("Error", f"Error building table: {e}")
             return None, None
+    
+    # Alias for backward compatibility
+    monta_tabela = build_table

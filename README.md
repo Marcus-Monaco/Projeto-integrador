@@ -11,7 +11,8 @@ Um sistema de consulta de biblioteca com interface gráfica desenvolvido em Pyth
 
 - ✅ **Carregamento de Livros**: Visualiza 9.999 títulos em ComboBox
 - ✅ **Consulta Detalhada**: Exibe livros, autores, edições e anos em tabela
-- ✅ **Interface Intuitiva**: GUI moderna com Tkinter
+- ✅ **Interface Intuitiva**: GUI moderna com Tkinter e redimensionamento dinâmico
+- ✅ **Múltiplos Bancos**: Suporte para PostgreSQL e MySQL
 - ✅ **Banco Robusto**: PostgreSQL com 5 tabelas interligadas (+30.000 registros)
 - ✅ **Arquitetura MVC**: Padrão Model-View-Controller bem estruturado
 - ✅ **Threading**: Operações assíncronas para melhor performance
@@ -312,14 +313,18 @@ export DB_NAME=livros
 export DB_USER=postgres
 export DB_PASS=sua_senha
 
-# Executar
+# Executar com PostgreSQL (padrão)
 python main.py
+
+# Executar com MySQL
+python main.py --db mysql
 ```
 
 ## 🐛 Troubleshooting
 
 ### ❌ Problema: "connection to server failed"
 ```bash
+# Para PostgreSQL
 # Verificar se PostgreSQL está rodando
 sudo systemctl status postgresql
 
@@ -328,15 +333,26 @@ sudo systemctl start postgresql
 
 # Reiniciar se necessário
 sudo systemctl restart postgresql
+
+# Para MySQL
+# Verificar se MySQL está rodando
+sudo systemctl status mysql
+
+# Iniciar se parado
+sudo systemctl start mysql
+
+# Reiniciar se necessário
+sudo systemctl restart mysql
 ```
 
-### ❌ Problema: "ModuleNotFoundError: No module named 'psycopg2'"
+### ❌ Problema: "ModuleNotFoundError: No module named 'psycopg2'" ou "mysql.connector"
 ```bash
 # Ativar ambiente virtual
 source venv/bin/activate
 
-# Instalar dependência
-pip install psycopg2-binary
+# Instalar dependências específicas
+pip install psycopg2-binary  # Para PostgreSQL
+pip install mysql-connector-python  # Para MySQL
 
 # Ou instalar todas
 pip install -r requirements.txt
@@ -382,6 +398,48 @@ sudo -u postgres psql -d livros -c "SELECT count(*) FROM livros;"
 - Aguarde a operação terminar completamente
 - Verifique se não há janelas minimizadas
 - Reinicie a aplicação se necessário
+
+## 🔄 Configuração MySQL
+
+Para usar o sistema com MySQL em vez de PostgreSQL, siga estes passos:
+
+### 1. Configurar o banco de dados MySQL e importar os dados
+```bash
+# Tornar o script executável
+chmod +x setup_mysql.sh
+
+# Executar o script de configuração MySQL
+./setup_mysql.sh
+
+# Quando solicitado, informe a senha do root do MySQL
+# (deixe em branco se não tiver senha configurada)
+```
+
+O script `setup_mysql.sh` automatiza todo o processo:
+- Instala o MySQL (se necessário)
+- Cria o banco de dados e o usuário
+- Cria as tabelas
+- Adapta e importa os dados dos scripts SQL
+- Verifica a importação dos dados
+
+### 2. Executar o sistema com MySQL
+```bash
+# Tornar o script executável (se ainda não estiver)
+chmod +x run.sh
+
+# Executar o script
+./run.sh
+
+# Quando solicitado, escolha a opção 2 para MySQL
+# Opção (1/2): 2
+```
+
+### 3. Credenciais do MySQL
+- **Usuário**: biblioteca
+- **Senha**: biblioteca123
+- **Banco**: livros
+- **Host**: localhost
+- **Porta**: 3306
 
 ## 📊 Dados do Sistema
 
@@ -432,8 +490,9 @@ Este sistema foi desenvolvido para fins educacionais, demonstrando:
 ### Tecnologias Utilizadas
 - **Python 3.8+**: Linguagem principal
 - **Tkinter**: Interface gráfica
-- **PostgreSQL**: Banco de dados
+- **PostgreSQL/MySQL**: Bancos de dados suportados
 - **psycopg2**: Driver PostgreSQL
+- **mysql-connector-python**: Driver MySQL
 - **Threading**: Processamento assíncrono
 
 ## 🤝 Contribuindo

@@ -1,16 +1,20 @@
 class DaoCombo:
-    def __init__(self, conexao):
-        self.conexao = conexao
+    def __init__(self, connection):
+        self.conexao = connection
     
-    def lista_livros(self):
+    def get_books(self):
         sql = "select titulo from livros"
         cursor = self.conexao.bd.consulta(sql)
         return cursor
     
-    def pesquisa_dados_livros(self):
+    def get_book_details(self):
         sql = """select l.titulo, a.nome, e.numero, e.ano
-                from livros l inner join livroAutor la on l.codigo = la.codigoLivro 
-                inner join autor a on a.codigo = la.codigoAutor
-                inner join edicao e on a.codigo = e.codigoLivro"""
+                from livros l inner join livroautor la on l.codigo = la.codigolivro 
+                inner join autor a on a.codigo = la.codigoautor
+                inner join edicao e on e.codigolivro = l.codigo"""
         cursor = self.conexao.bd.consulta(sql)
         return cursor
+    
+    # Aliases for backward compatibility
+    lista_livros = get_books
+    pesquisa_dados_livros = get_book_details

@@ -40,9 +40,34 @@ if ! systemctl is-active --quiet postgresql; then
     fi
 fi
 
+# Perguntar qual banco de dados usar
+echo "Escolha o banco de dados:"
+echo "1) PostgreSQL (padrão)"
+echo "2) MySQL"
+read -p "Opção (1/2): " db_choice
+
+# Configurar opção de banco de dados
+if [ "$db_choice" = "2" ]; then
+    DB_TYPE="mysql"
+    
+    # Verificar se MySQL está rodando
+    echo "Verificando MySQL..."
+    if ! systemctl is-active --quiet mysql; then
+        echo "MySQL não está rodando. Tentando iniciar..."
+        sudo systemctl start mysql
+        if [ $? -ne 0 ]; then
+            echo "Erro ao iniciar MySQL!"
+            echo "Execute: sudo systemctl start mysql"
+            exit 1
+        fi
+    fi
+else
+    DB_TYPE="postgresql"
+fi
+
 # Executar a aplicação
-echo "Executando aplicação..."
-python main.py
+echo "Executando aplicação com banco de dados: $DB_TYPE..."
+python main.py --db $DB_TYPE
 
 # Verificar se houve erro
 if [ $? -ne 0 ]; then
